@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	// "net/http"
-	//
-	// "github.com/gin-gonic/gin"
+
+	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 )
 
@@ -21,4 +20,18 @@ func main() {
 		log.Fatalf("Error while pinging: %q", err)
 	}
 	fmt.Println("Ping successful")
+	router := gin.Default()
+
+	router.GET("/ping", handleRoot)
+	fmt.Println("Server listening on :8888")
+	err = router.Run()
+	if err != nil {
+		log.Fatalf("%q", err)
+	}
+}
+
+func handleRoot(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "pong",
+	})
 }
