@@ -6,7 +6,8 @@ CREATE TABLE users (
   name varchar(255) NOT NULL UNIQUE,
   role text not null,
   created_at timestamp NOT NULL DEFAULT NOW(),
-  updated_at timestamp NOT NULL DEFAULT NOW()
+  updated_at timestamp NOT NULL DEFAULT NOW(),
+  pw_hash varchar(255) not null
 );
 
 
