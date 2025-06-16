@@ -14,9 +14,9 @@ import (
 )
 
 const createPatient = `-- name: CreatePatient :one
-insert into patients (id, name, age, gender, address, created_at, updated_at)
-values($1, $2, $3, $4, $5, $6, $7)
-Returning id, name, age, gender, address, created_at, updated_at
+insert into patients (id, name, age, gender, diagnosis, address, created_at, updated_at)
+values($1, $2, $3, $4, $5, $6, $7, $8)
+Returning id, name, age, gender, address, diagnosis, created_at, updated_at
 `
 
 type CreatePatientParams struct {
@@ -24,6 +24,7 @@ type CreatePatientParams struct {
 	Name      string
 	Age       int32
 	Gender    string
+	Diagnosis sql.NullString
 	Address   sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -35,6 +36,7 @@ func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (P
 		arg.Name,
 		arg.Age,
 		arg.Gender,
+		arg.Diagnosis,
 		arg.Address,
 		arg.CreatedAt,
 		arg.UpdatedAt,
@@ -46,6 +48,7 @@ func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (P
 		&i.Age,
 		&i.Gender,
 		&i.Address,
+		&i.Diagnosis,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -88,6 +91,16 @@ func (q *Queries) CreateStaffMember(ctx context.Context, arg CreateStaffMemberPa
 	return i, err
 }
 
+const deletePatient = `-- name: DeletePatient :exec
+DELETE from patients
+where name = $1
+`
+
+func (q *Queries) DeletePatient(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, deletePatient, name)
+	return err
+}
+
 const dropRows = `-- name: DropRows :exec
 TRUNCATE TABLE staff RESTART IDENTITY CASCADE
 `
@@ -98,7 +111,7 @@ func (q *Queries) DropRows(ctx context.Context) error {
 }
 
 const getPatient = `-- name: GetPatient :one
-Select id, name, age, gender, address, created_at, updated_at from patients
+Select id, name, age, gender, address, diagnosis, created_at, updated_at from patients
 where name = $1
 `
 
@@ -111,6 +124,7 @@ func (q *Queries) GetPatient(ctx context.Context, name string) (Patient, error) 
 		&i.Age,
 		&i.Gender,
 		&i.Address,
+		&i.Diagnosis,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -172,4 +186,41 @@ func (q *Queries) ListStaffMembers(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePatientDetails = `-- name: UpdatePatientDetails :one
+UPDATE patients
+SET age = $2, gender = $3, address = $4, diagnosis = $5, updated_at = NOW()
+WHERE name = $1
+RETURNING id, name, age, gender, address, diagnosis, created_at, updated_at
+`
+
+type UpdatePatientDetailsParams struct {
+	Name      string
+	Age       int32
+	Gender    string
+	Address   sql.NullString
+	Diagnosis sql.NullString
+}
+
+func (q *Queries) UpdatePatientDetails(ctx context.Context, arg UpdatePatientDetailsParams) (Patient, error) {
+	row := q.db.QueryRowContext(ctx, updatePatientDetails,
+		arg.Name,
+		arg.Age,
+		arg.Gender,
+		arg.Address,
+		arg.Diagnosis,
+	)
+	var i Patient
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Age,
+		&i.Gender,
+		&i.Address,
+		&i.Diagnosis,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

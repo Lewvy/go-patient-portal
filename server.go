@@ -40,6 +40,9 @@ func setupRouter(state *models.State) *gin.Engine {
 
 	patients.POST("", middleware.RequiredRole("Receptionist"), api.CreatePatient(state))
 	patients.GET("/:name", middleware.RequiredRole("Receptionist", "Doctor"), api.GetPatient(state))
+	patients.DELETE("/:name", middleware.RequiredRole("Receptionist"), api.DeletePatient(state))
+	patients.PATCH("/:name", middleware.RequiredRole("Receptionist", "Doctor"), api.UpdatePatient(state))
+
 	return router
 }
 

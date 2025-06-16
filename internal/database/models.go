@@ -17,6 +17,7 @@ type Patient struct {
 	Age       int32
 	Gender    string
 	Address   sql.NullString
+	Diagnosis sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
