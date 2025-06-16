@@ -76,6 +76,17 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 	return i, err
 }
 
+const getUserPasswdHash = `-- name: GetUserPasswdHash :one
+SELECT pw_hash from users where name = $1
+`
+
+func (q *Queries) GetUserPasswdHash(ctx context.Context, name string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getUserPasswdHash, name)
+	var pw_hash string
+	err := row.Scan(&pw_hash)
+	return pw_hash, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT name FROM users
 `

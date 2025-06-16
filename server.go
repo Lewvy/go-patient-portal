@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/Lewvy/markable/api"
+	"github.com/Lewvy/markable/internal/config"
 	"github.com/Lewvy/markable/internal/database"
 	"github.com/Lewvy/markable/internal/models"
 
@@ -14,9 +15,18 @@ import (
 )
 
 func main() {
-	db_url := "postgres://mark:pwd@localhost:5433/hospital?sslmode=disable"
+	err := config.SetConfig()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
-	db, err := sql.Open("postgres", db_url)
+	cfg, err := config.Read()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	fmt.Println(cfg.DB_URL)
+	db, err := sql.Open("postgres", cfg.DB_URL)
 	if err != nil {
 		log.Fatalf("Error opening db: %q", err)
 	}
@@ -33,6 +43,7 @@ func main() {
 
 	router.GET("/ping", handleRoot)
 	router.POST("/register", api.HandleRegistration(state))
+	router.POST("/login", api.HandleLogin(state))
 	fmt.Println("Server listening on :8888")
 	err = router.Run()
 	if err != nil {

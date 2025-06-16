@@ -13,7 +13,7 @@ import (
 
 func HandleRegistration(s *models.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var user models.User
+		user := models.User{}
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid input"})
 			return

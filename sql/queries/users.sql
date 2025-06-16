@@ -12,3 +12,6 @@ TRUNCATE TABLE users RESTART IDENTITY CASCADE;
 
 -- name: ListUsers :many
 SELECT name FROM users;
+
+-- name: GetUserPasswdHash :one
+SELECT pw_hash from users where name = $1;

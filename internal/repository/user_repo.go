@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"github.com/Lewvy/markable/internal/database"
 	"github.com/Lewvy/markable/internal/models"
 )
 
