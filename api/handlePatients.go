@@ -50,3 +50,30 @@ func CreatePatient(state *models.State) gin.HandlerFunc {
 		c.JSON(http.StatusOK, patient)
 	}
 }
+
+func GetPatient(s *models.State) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		patientName := c.Param("name")
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		patient, err := s.Db.GetPatient(ctx, patientName)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Patient not found: " + err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"name":        patient.Name,
+			"age":         patient.Age,
+			"id":          patient.ID,
+			"gender":      patient.Gender,
+			"admitted_at": patient.CreatedAt,
+			"updated_at":  patient.UpdatedAt,
+		})
+	}
+}
+
+func DeletePatient(s *models.State) gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+	}
+}

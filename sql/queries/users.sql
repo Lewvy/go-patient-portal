@@ -20,3 +20,7 @@ SELECT pw_hash from staff where name = $1;
 insert into patients (id, name, age, gender, address, created_at, updated_at)
 values($1, $2, $3, $4, $5, $6, $7)
 Returning *;
+
+-- name: GetPatient :one
+Select * from patients
+where name = $1;

@@ -39,7 +39,7 @@ func setupRouter(state *models.State) *gin.Engine {
 	patients.Use(middleware.AuthorizeToken(state))
 
 	patients.POST("", middleware.RequiredRole("Receptionist"), api.CreatePatient(state))
-	patients.GET("", middleware.RequiredRole("Receptionist", "Doctor"))
+	patients.GET("/:name", middleware.RequiredRole("Receptionist", "Doctor"), api.GetPatient(state))
 	return router
 }
 
