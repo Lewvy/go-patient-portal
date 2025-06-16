@@ -74,6 +74,9 @@ func GetPatient(s *models.State) gin.HandlerFunc {
 
 func DeletePatient(s *models.State) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		patientName := c.Param("name")
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
 
 	}
 }
