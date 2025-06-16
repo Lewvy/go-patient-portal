@@ -1,17 +1,22 @@
--- name: CreateUser :one
-INSERT INTO users (id, name, role, created_at, updated_at, pw_hash)
+-- name: CreateStaffMember :one
+INSERT INTO staff (id, name, role, created_at, updated_at, pw_hash)
 VALUES($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
--- name: GetUser :one
-SELECT * FROM users
+-- name: GetStaffMember :one
+SELECT * FROM staff 
 WHERE name = $1;
 
 -- name: DropRows :exec
-TRUNCATE TABLE users RESTART IDENTITY CASCADE;
+TRUNCATE TABLE staff RESTART IDENTITY CASCADE;
 
--- name: ListUsers :many
-SELECT name FROM users;
+-- name: ListStaffMembers :many
+SELECT name FROM staff;
 
--- name: GetUserPasswdHash :one
-SELECT pw_hash from users where name = $1;
+-- name: GetStaffPasswdHash :one
+SELECT pw_hash from staff where name = $1;
+
+-- name: CreatePatient :one
+insert into patients (id, name, age, gender, address, created_at, updated_at)
+values($1, $2, $3, $4, $5, $6, $7)
+Returning *;

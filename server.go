@@ -1,13 +1,11 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/Lewvy/markable/api"
-	"github.com/Lewvy/markable/internal/config"
 	"github.com/Lewvy/markable/internal/database"
+	"github.com/Lewvy/markable/internal/middleware"
 	"github.com/Lewvy/markable/internal/models"
 
 	"github.com/gin-gonic/gin"
@@ -15,41 +13,34 @@ import (
 )
 
 func main() {
-	err := config.SetConfig()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	cfg := loadConfig()
+	db := connectDB(cfg.DB_URL)
+	defer db.Close()
 
-	cfg, err := config.Read()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	fmt.Println(cfg.DB_URL)
-	db, err := sql.Open("postgres", cfg.DB_URL)
-	if err != nil {
-		log.Fatalf("Error opening db: %q", err)
-	}
-	err = db.Ping()
-	if err != nil {
-		log.Fatalf("Error while pinging: %q", err)
-	}
-	fmt.Println("Ping successful")
-	dbQueries := database.New(db)
 	state := &models.State{
-		Db: dbQueries,
+		Db:  database.New(db),
+		Cfg: &cfg,
 	}
-	router := gin.Default()
 
+	router := setupRouter(state)
+	log.Println("Server listening on :8888")
+	if err := router.Run(":8888"); err != nil {
+		log.Fatalf("%q", err)
+	}
+}
+
+func setupRouter(state *models.State) *gin.Engine {
+	router := gin.Default()
 	router.GET("/ping", handleRoot)
 	router.POST("/register", api.HandleRegistration(state))
 	router.POST("/login", api.HandleLogin(state))
-	fmt.Println("Server listening on :8888")
-	err = router.Run()
-	if err != nil {
-		log.Fatalf("%q", err)
-	}
 
+	patients := router.Group("/patients")
+	patients.Use(middleware.AuthorizeToken(state))
+
+	patients.POST("", middleware.RequiredRole("Receptionist"), api.CreatePatient(state))
+	patients.GET("", middleware.RequiredRole("Receptionist", "Doctor"))
+	return router
 }
 
 func handleRoot(c *gin.Context) {

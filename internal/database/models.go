@@ -5,12 +5,23 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type User struct {
+type Patient struct {
+	ID        uuid.UUID
+	Name      string
+	Age       int32
+	Gender    string
+	Address   sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Staff struct {
 	ID        uuid.UUID
 	Name      string
 	Role      string

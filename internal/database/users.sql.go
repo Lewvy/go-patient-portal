@@ -7,18 +7,58 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, role, created_at, updated_at, pw_hash)
+const createPatient = `-- name: CreatePatient :one
+insert into patients (id, name, age, gender, address, created_at, updated_at)
+values($1, $2, $3, $4, $5, $6, $7)
+Returning id, name, age, gender, address, created_at, updated_at
+`
+
+type CreatePatientParams struct {
+	ID        uuid.UUID
+	Name      string
+	Age       int32
+	Gender    string
+	Address   sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (Patient, error) {
+	row := q.db.QueryRowContext(ctx, createPatient,
+		arg.ID,
+		arg.Name,
+		arg.Age,
+		arg.Gender,
+		arg.Address,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i Patient
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Age,
+		&i.Gender,
+		&i.Address,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createStaffMember = `-- name: CreateStaffMember :one
+INSERT INTO staff (id, name, role, created_at, updated_at, pw_hash)
 VALUES($1, $2, $3, $4, $5, $6)
 RETURNING id, name, role, created_at, updated_at, pw_hash
 `
 
-type CreateUserParams struct {
+type CreateStaffMemberParams struct {
 	ID        uuid.UUID
 	Name      string
 	Role      string
@@ -27,8 +67,8 @@ type CreateUserParams struct {
 	PwHash    string
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+func (q *Queries) CreateStaffMember(ctx context.Context, arg CreateStaffMemberParams) (Staff, error) {
+	row := q.db.QueryRowContext(ctx, createStaffMember,
 		arg.ID,
 		arg.Name,
 		arg.Role,
@@ -36,7 +76,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.UpdatedAt,
 		arg.PwHash,
 	)
-	var i User
+	var i Staff
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -49,7 +89,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const dropRows = `-- name: DropRows :exec
-TRUNCATE TABLE users RESTART IDENTITY CASCADE
+TRUNCATE TABLE staff RESTART IDENTITY CASCADE
 `
 
 func (q *Queries) DropRows(ctx context.Context) error {
@@ -57,14 +97,14 @@ func (q *Queries) DropRows(ctx context.Context) error {
 	return err
 }
 
-const getUser = `-- name: GetUser :one
-SELECT id, name, role, created_at, updated_at, pw_hash FROM users
+const getStaffMember = `-- name: GetStaffMember :one
+SELECT id, name, role, created_at, updated_at, pw_hash FROM staff 
 WHERE name = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, name)
-	var i User
+func (q *Queries) GetStaffMember(ctx context.Context, name string) (Staff, error) {
+	row := q.db.QueryRowContext(ctx, getStaffMember, name)
+	var i Staff
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -76,23 +116,23 @@ func (q *Queries) GetUser(ctx context.Context, name string) (User, error) {
 	return i, err
 }
 
-const getUserPasswdHash = `-- name: GetUserPasswdHash :one
-SELECT pw_hash from users where name = $1
+const getStaffPasswdHash = `-- name: GetStaffPasswdHash :one
+SELECT pw_hash from staff where name = $1
 `
 
-func (q *Queries) GetUserPasswdHash(ctx context.Context, name string) (string, error) {
-	row := q.db.QueryRowContext(ctx, getUserPasswdHash, name)
+func (q *Queries) GetStaffPasswdHash(ctx context.Context, name string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getStaffPasswdHash, name)
 	var pw_hash string
 	err := row.Scan(&pw_hash)
 	return pw_hash, err
 }
 
-const listUsers = `-- name: ListUsers :many
-SELECT name FROM users
+const listStaffMembers = `-- name: ListStaffMembers :many
+SELECT name FROM staff
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]string, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers)
+func (q *Queries) ListStaffMembers(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, listStaffMembers)
 	if err != nil {
 		return nil, err
 	}

@@ -25,7 +25,7 @@ func HandleRegistration(s *models.State) gin.HandlerFunc {
 			return
 		}
 
-		reqUser := &database.CreateUserParams{
+		reqUser := &database.CreateStaffMemberParams{
 			ID:        uuid.New(),
 			Name:      user.UserName,
 			PwHash:    pwHash,
@@ -37,9 +37,9 @@ func HandleRegistration(s *models.State) gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		u, err := s.Db.CreateUser(ctx, *reqUser)
+		u, err := s.Db.CreateStaffMember(ctx, *reqUser)
 		if err != nil {
-			c.JSON(500, gin.H{"error": "Failed to create user"})
+			c.JSON(500, gin.H{"error": "Failed to create user: " + err.Error()})
 			return
 		}
 		c.JSON(201, u)
