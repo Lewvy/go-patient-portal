@@ -25,12 +25,13 @@ Returning *;
 Select * from patients
 where name = $1;
 
--- name: DeletePatient :exec
-DELETE from patients
-where name = $1;
+-- name: DeletePatient :one
+DELETE FROM patients
+WHERE name = $1
+RETURNING id;
 
 -- name: UpdatePatientDetails :one
 UPDATE patients
-SET name = $2, age = $3, gender = $4, address = $5, diagnosis = $6, updated_at = NOW()
+SET age = $2, gender = $3, address = $4, diagnosis = $5, updated_at = NOW()
 WHERE name = $1
 RETURNING *;

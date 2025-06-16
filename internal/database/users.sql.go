@@ -91,14 +91,17 @@ func (q *Queries) CreateStaffMember(ctx context.Context, arg CreateStaffMemberPa
 	return i, err
 }
 
-const deletePatient = `-- name: DeletePatient :exec
-DELETE from patients
-where name = $1
+const deletePatient = `-- name: DeletePatient :one
+DELETE FROM patients
+WHERE name = $1
+RETURNING id
 `
 
-func (q *Queries) DeletePatient(ctx context.Context, name string) error {
-	_, err := q.db.ExecContext(ctx, deletePatient, name)
-	return err
+func (q *Queries) DeletePatient(ctx context.Context, name string) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, deletePatient, name)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const dropRows = `-- name: DropRows :exec

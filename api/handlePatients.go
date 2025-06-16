@@ -71,6 +71,7 @@ func GetPatient(s *models.State) gin.HandlerFunc {
 			"age":         patient.Age,
 			"id":          patient.ID,
 			"gender":      patient.Gender,
+			"diagnosis":   patient.Diagnosis,
 			"admitted_at": patient.CreatedAt,
 			"updated_at":  patient.UpdatedAt,
 		})
@@ -84,9 +85,14 @@ func DeletePatient(s *models.State) gin.HandlerFunc {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 
-		err := s.Db.DeletePatient(ctx, patientName)
+		rows, err := s.Db.DeletePatient(ctx, patientName)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Unexpected error: " + err.Error()})
+			return
+		}
+
+		if rows == uuid.Nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Patient not found"})
 			return
 		}
 
